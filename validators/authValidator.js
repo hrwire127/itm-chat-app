@@ -1,0 +1,46 @@
+const Joi = require("joi");
+
+const allowedDomains = [
+  "gmail.com",
+  "yahoo.com",
+  "outlook.com",
+  "protonmail.com",
+  "tuiasi.ro",
+  "student.tuiasi.ro",
+];
+const passwordRegex = /^[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,./?]{8,32}$/;
+
+const registerSchema = Joi.object({
+  username: Joi.string().min(3).max(30).required(),
+  email: Joi.string()
+    .email({ tlds: { allow: false } }) // validare strictă RFC pentru email
+    .required()
+    .custom((value, helpers) => {
+      const domain = value.split("@")[1];
+      if (!allowedDomains.includes(domain)) {
+        return helpers.message(
+          `Email domain must be one of: ${allowedDomains.join(", ")}`
+        );
+      }
+      return value;
+    }),
+  password: Joi.string()
+    .pattern(passwordRegex)
+    .min(8)
+    .max(30)
+    .required()
+    .messages({
+      "string.pattern.base":
+        "Parola poate conține doar litere, cifre și simboluri comune. Minim 8 caractere.",
+    }),
+  role: Joi.string().valid("user", "admin").optional(), // dacă ai roluri
+});
+
+const loginSchema = Joi.object({
+  email: Joi.string()
+    .email({ tlds: { allow: false } })
+    .required(),
+  password: Joi.string().required(),
+});
+
+module.exports = { registerSchema, loginSchema };

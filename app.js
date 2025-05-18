@@ -7,10 +7,10 @@ const flash = require("express-flash");
 module.exports = (clientPort) => {
   const app = express();
 
+  app.use(express.json());
   app.use(
     cors({ origin: `http://localhost:${clientPort}`, credentials: true })
   );
-  app.use(express.json());
   app.use(
     session({
       store: new session.MemoryStore(),
