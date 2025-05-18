@@ -8,11 +8,23 @@ const allowedDomains = [
   "tuiasi.ro",
   "student.tuiasi.ro",
 ];
+
+const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const usernameRegex = /^[a-zA-Z0-9_-]{3,30}$/;
 const passwordRegex = /^[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,./?]{8,32}$/;
 
 const registerSchema = Joi.object({
-  username: Joi.string().min(3).max(30).required(),
+  username: Joi.string()
+    .pattern(usernameRegex)
+    .min(3)
+    .max(30)
+    .required()
+    .messages({
+      "string.pattern.base":
+        "Username-ul poate conține doar litere, cifre, _ și -, între 3 și 30 caractere.",
+    }),
   email: Joi.string()
+    .pattern(emailRegex)
     .email({ tlds: { allow: false } }) // validare strictă RFC pentru email
     .required()
     .custom((value, helpers) => {
