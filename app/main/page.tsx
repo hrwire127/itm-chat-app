@@ -7,13 +7,11 @@ import Loader from "../components/Loader";
 import io, { Socket } from "socket.io-client";
 
 type Message = string;
-// type UserId = string;
 type ActiveUser = {
   username: string;
   token: string;
   role: string;
 };
-type UserName = string;
 
 export default function Main() {
   const [loading, setLoading] = useState(true);
@@ -24,10 +22,8 @@ export default function Main() {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [username, setUsername] = useState<string | null>(null);
 
-
   const router = useRouter();
 
-  // Verifică login-ul
   useEffect(() => {
     verifyLogin().then((valid) => {
       setIsLoggedIn(valid);
@@ -35,15 +31,13 @@ export default function Main() {
 
       if (!valid) {
         router.push("/login");
-      }
-      else {
+      } else {
         const name = localStorage.getItem("username");
         setUsername(name);
       }
     });
   }, [router]);
 
-  // Conectează socket.io doar după autentificare
   useEffect(() => {
     if (!isLoggedIn) return;
 
@@ -62,7 +56,6 @@ export default function Main() {
     });
 
     socketIo.on("activeUsers", (users: ActiveUser[]) => {
-      console.log(users)
       setActiveUsers(users);
     });
 
@@ -83,50 +76,47 @@ export default function Main() {
     }
   };
 
-  if (loading) {
-    return <Loader />;
-  }
-
-  if (!isLoggedIn) {
-    return null;
-  }
+  if (loading) return <Loader />;
+  if (!isLoggedIn) return null;
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial" }}>
-      <h1><b>Chat</b></h1>
-      {username && <p>You are logged in as <b>{username}</b></p>}
+    <div className="p-5 font-sans">
+      <h1 className="text-2xl font-bold mb-2">Chat</h1>
+      {username && (
+        <p className="mb-4">
+          You are logged in as <b>{username}</b>
+        </p>
+      )}
 
-      <h4>Active Users:</h4>
-      <ul>
-        {activeUsers.map((user, index) => user.username != "none" && (
-          <li key={index}>{user.username} is online</li>
-        ))}
+      <h4 className="font-semibold">Active Users:</h4>
+      <ul className="mb-4 list-disc list-inside">
+        {activeUsers.map(
+          (user, index) =>
+            user.username !== "none" && <li key={index}>{user.username} is online</li>
+        )}
       </ul>
 
-      <div style={{
-        border: "1px solid #ccc",
-        padding: "10px",
-        marginBottom: "10px",
-        height: "200px",
-        overflowY: "auto",
-      }}>
+      <div className="border border-gray-300 p-3 mb-4 h-52 overflow-y-auto rounded bg-white shadow-sm">
         {messages.map((msg, index) => (
-          <div key={index} style={{ marginBottom: "5px" }}>
+          <div key={index} className="mb-1">
             {msg}
           </div>
         ))}
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="flex items-center gap-2">
         <input
           type="text"
           placeholder="Type your message..."
           value={inputValue}
           onChange={handleChange}
           required
-          style={{ padding: "8px", width: "70%" }}
+          className="p-2 w-full border border-gray-300 rounded"
         />
-        <button type="submit" style={{ padding: "8px 12px", marginLeft: "10px" }}>
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+        >
           Send
         </button>
       </form>
