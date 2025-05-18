@@ -7,15 +7,23 @@ import Loader from "../components/Loader";
 import io, { Socket } from "socket.io-client";
 
 type Message = string;
-type UserId = string;
+// type UserId = string;
+type ActiveUser = {
+  username: string;
+  token: string;
+  role: string;
+};
+type UserName = string;
 
 export default function Main() {
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState<string>("");
-  const [activeUsers, setActiveUsers] = useState<UserId[]>([]);
+  const [activeUsers, setActiveUsers] = useState<ActiveUser[]>([]);
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
+
 
   const router = useRouter();
 
@@ -28,6 +36,10 @@ export default function Main() {
       if (!valid) {
         router.push("/login");
       }
+      else {
+        const name = localStorage.getItem("username");
+        setUsername(name);
+      }
     });
   }, [router]);
 
@@ -36,8 +48,11 @@ export default function Main() {
     if (!isLoggedIn) return;
 
     const token = localStorage.getItem("token");
+    const username = localStorage.getItem("username");
+    const role = localStorage.getItem("role");
+
     const socketIo = io("http://localhost:3001", {
-      auth: { token },
+      auth: { token, username, role },
     });
 
     setSocket(socketIo);
@@ -46,7 +61,8 @@ export default function Main() {
       setMessages((prev) => [...prev, message]);
     });
 
-    socketIo.on("activeUsers", (users: UserId[]) => {
+    socketIo.on("activeUsers", (users: ActiveUser[]) => {
+      console.log(users)
       setActiveUsers(users);
     });
 
@@ -78,10 +94,12 @@ export default function Main() {
   return (
     <div style={{ padding: "20px", fontFamily: "Arial" }}>
       <h1><b>Chat</b></h1>
+      {username && <p>You are logged in as <b>{username}</b></p>}
+
       <h4>Active Users:</h4>
       <ul>
-        {activeUsers.map((userId) => (
-          <li key={userId}>{userId} is online</li>
+        {activeUsers.map((user, index) => user.username != "none" && (
+          <li key={index}>{user.username} is online</li>
         ))}
       </ul>
 

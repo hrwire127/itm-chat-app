@@ -49,9 +49,11 @@ export default function LoginPage() {
 
       if (!res.ok) throw new Error(data.message || "Eroare la autentificare");
 
-      console.log(data.token)
+      console.log(data)
 
       localStorage.setItem("token", data.token); // JWT simplu
+      localStorage.setItem("username", data.username); // JWT simplu
+      localStorage.setItem("role", data.role); // JWT simplu
 
       // router.push("/main").then(() => window.location.reload());
       

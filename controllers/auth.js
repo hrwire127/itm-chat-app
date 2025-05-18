@@ -19,7 +19,7 @@ exports.registerRouter = async (req, res) => {
 
     const user = await User.create({ username, email, password });
     const token = generateToken(user);
-    res.status(201).json({ token });
+    res.status(201).json({ token, username: user.username, role: user.role });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Server error" });
@@ -38,7 +38,7 @@ exports.loginRouter = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
 
     const token = generateToken(user);
-    res.json({ token });
+    res.json({ token, username: user.username, role: user.role });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }

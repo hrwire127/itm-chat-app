@@ -25,10 +25,12 @@ const io = new Server(server, {
   },
 });
 
-app.use(cors({
-  origin: `http://localhost:${process.env.PORT_CLIENT}`, // frontend-ul
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: `http://localhost:${process.env.PORT_CLIENT}`, // frontend-ul
+    credentials: true,
+  })
+);
 
 mongoose
   .connect(uri, {
@@ -39,14 +41,19 @@ mongoose
   .then(() => console.log("✅ Conectat la MongoDB"))
   .catch((err) => console.log("❌ Eroare la conectare:", err));
 
-let activeUsers = {};
+activeUsers = {};
 
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
-  activeUsers[socket.id] = true;
+  activeUsers[socket.id] = {
+    username: socket.handshake.auth.username || "none",
+    token: socket.handshake.auth.token || "none",
+    role: socket.handshake.auth.role || "none",
+  };
+
+  console.log("User connected:", socket.handshake.auth.username);
 
   // Trimite lista de useri la toți
-  io.emit("activeUsers", Object.keys(activeUsers));
+  io.emit("activeUsers", Object.values(activeUsers));
 
   socket.on("message", (message) => {
     io.emit("message", `${socket.id}: ${message}`);
@@ -55,19 +62,16 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
     delete activeUsers[socket.id];
-    io.emit("activeUsers", Object.keys(activeUsers)); // Trimite lista actualizată
+    io.emit("activeUsers", Object.values(activeUsers)); // Trimite lista actualizată
   });
 });
 
 app.use(express.json()); // important pentru body parsing
 // app.use('/api', authRoutes); // deci ai endpoint-ul POST /api/register
 
-
 app.use(express.json());
 app.use("/api", protectedRoutes);
 app.use("/api", authRoutes);
-
-
 
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
