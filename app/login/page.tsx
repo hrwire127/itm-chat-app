@@ -51,16 +51,16 @@ export default function LoginPage() {
       });
 
       const data = await res.json();
+      console.log(data)
 
-      if (!res.ok) throw new Error(data.error || "Eroare la autentificare");
+      if (!res.ok) throw new Error(data.error || data.message || "Eroare la autentificare");
 
       localStorage.setItem("token", data.token); // JWT simplu
       localStorage.setItem("username", data.username); // JWT simplu
       localStorage.setItem("role", data.role); // JWT simplu
 
-      // router.push("/main").then(() => window.location.reload());
 
-      window.location.href = "/main";
+      window.location.href = "/";
       // window.location.reload();
     } catch (err: any) {
       setError(err.message);

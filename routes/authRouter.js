@@ -7,7 +7,7 @@ const rateLimit = require("express-rate-limit");
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minute
-  max: 3, // maxim 3 cereri per IP în acest interval
+  max: 300, // maxim 3 cereri per IP în acest interval
   message: {
     error:
       "Prea multe încercări de autentificare. Încearcă din nou după 15 minute.",
@@ -17,7 +17,7 @@ const loginLimiter = rateLimit({
 });
 const registerLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minute
-  max: 3, // maxim 3 cereri per IP în acest interval
+  max: 300, // maxim 3 cereri per IP în acest interval
   message: {
     error:
       "Prea multe încercări de autentificare. Încearcă din nou după 15 minute.",
