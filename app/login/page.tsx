@@ -49,6 +49,8 @@ export default function LoginPage() {
 
       if (!res.ok) throw new Error(data.message || "Eroare la autentificare");
 
+      console.log(data.token)
+
       localStorage.setItem("token", data.token); // JWT simplu
       router.push("/"); // Redirect către homepage
     } catch (err: any) {

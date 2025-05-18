@@ -14,6 +14,7 @@ const app = express();
 const server = http.createServer(app);
 
 const authRoutes = require("./routes/authRouter");
+const protectedRoutes = require("./routes/protectedRouter");
 
 const PORT = process.env.PORT;
 
@@ -63,7 +64,9 @@ app.use(express.json()); // important pentru body parsing
 
 
 app.use(express.json());
+app.use("/api", protectedRoutes);
 app.use("/api", authRoutes);
+
 
 
 server.listen(PORT, () => {
