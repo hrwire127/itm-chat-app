@@ -12,7 +12,6 @@ const generateToken = (user) => {
 exports.registerRouter = async (req, res) => {
   const { username, email, password } = req.body;
 
-
   try {
     const existing = await User.findOne({ email });
     if (existing)
