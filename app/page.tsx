@@ -93,19 +93,65 @@ function SearchBar({
   );
 }
 
+// În Home component, înlocuiește funcția din <NewConversation />
+
 function NewConversation() {
-  const handleClick = () => {
-    alert("Funcționalitate creare conversație nouă");
+  const router = useRouter();
+  const [friendUsername, setFriendUsername] = useState("");
+
+  const handleCreate = async () => {
+    if (!friendUsername.trim()) {
+      alert("Introdu username-ul prietenului");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+
+
+      const res = await fetch("http://localhost:3001/chat/conversation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ friendUsername }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(`Eroare: ${data.msg || res.statusText}`);
+        return;
+      }
+
+      const conversation = await res.json();
+
+      router.push(`/chat/${conversation._id}`);
+    } catch (err) {
+      alert("Eroare la creare conversație");
+      console.error(err);
+    }
   };
+
   return (
-    <button
-      onClick={handleClick}
-      className="cursor-pointer px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-    >
-      + Creează conversație nouă
-    </button>
+    <div>
+      <input
+        type="text"
+        placeholder="Username prieten"
+        value={friendUsername}
+        onChange={(e) => setFriendUsername(e.target.value)}
+        className="p-1 border rounded mr-2"
+      />
+      <button
+        onClick={handleCreate}
+        className="cursor-pointer px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+      >
+        + Creează conversație nouă
+      </button>
+    </div>
   );
 }
+
 
 function CreateGroup() {
   const handleClick = () => {
