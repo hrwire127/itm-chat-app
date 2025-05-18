@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   const router = useRouter();
 
@@ -27,15 +28,19 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
 
-    if (!email || !password || (!isLogin && (!username || password !== confirmPassword))) {
-      setError("Verifică câmpurile completate!");
+    if (
+      !email ||
+      !password ||
+      (!isLogin && (!username || password !== confirmPassword || !acceptTerms))
+    ) {
+      setError("Verifică câmpurile completate și acceptă termenii!");
       return;
     }
 
     const endpoint = isLogin ? "login" : "register";
     const payload = isLogin
       ? { email, password }
-      : { username, email, password };
+      : { username, email, password, acceptTerms };
 
 
     try {
@@ -47,16 +52,14 @@ export default function LoginPage() {
 
       const data = await res.json();
 
-      if (!res.ok) throw new Error(data.message || "Eroare la autentificare");
-
-      console.log(data)
+      if (!res.ok) throw new Error(data.error || "Eroare la autentificare");
 
       localStorage.setItem("token", data.token); // JWT simplu
       localStorage.setItem("username", data.username); // JWT simplu
       localStorage.setItem("role", data.role); // JWT simplu
 
       // router.push("/main").then(() => window.location.reload());
-      
+
       window.location.href = "/main";
       // window.location.reload();
     } catch (err: any) {
@@ -113,6 +116,19 @@ export default function LoginPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
+
+              <div className="accept-terms">
+                <input
+                  type="checkbox"
+                  id="acceptTerms"
+                  checked={acceptTerms}
+                  onChange={(e) => setAcceptTerms(e.target.checked)}
+                  required
+                />
+                <label htmlFor="acceptTerms">
+                  Sunt de acord cu prelucrarea datelor cu caracter personal
+                </label>
+              </div>
             </>
           )}
 

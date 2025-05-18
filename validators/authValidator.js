@@ -11,7 +11,8 @@ const allowedDomains = [
 
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const usernameRegex = /^[a-zA-Z0-9_-]{3,30}$/;
-const passwordRegex = /^[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,./?]{8,32}$/;
+const passwordRegex =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
 
 const registerSchema = Joi.object({
   username: Joi.string()
@@ -43,9 +44,10 @@ const registerSchema = Joi.object({
     .required()
     .messages({
       "string.pattern.base":
-        "Parola poate conține doar litere, cifre și simboluri comune. Minim 8 caractere.",
+        "(Parole trebuie sa contina min un caracter mare, un caracter mic, cel puțin o cifră, cel puțin un caracter special și să aibă lungimea de minim 8 caractere",
     }),
   role: Joi.string().valid("user", "admin").optional(), // dacă ai roluri
+  acceptTerms: Joi.boolean().valid(true).required(),
 });
 
 const loginSchema = Joi.object({
