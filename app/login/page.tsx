@@ -52,7 +52,11 @@ export default function LoginPage() {
       console.log(data.token)
 
       localStorage.setItem("token", data.token); // JWT simplu
-      router.push("/"); // Redirect către homepage
+
+      // router.push("/main").then(() => window.location.reload());
+      
+      window.location.href = "/main";
+      // window.location.reload();
     } catch (err: any) {
       setError(err.message);
     }

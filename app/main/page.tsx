@@ -4,13 +4,7 @@ import { useEffect, useState, ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { verifyLogin } from "../verifyLogin";
 import Loader from "../components/Loader";
-import io from "socket.io-client";
-
-const socket = io("http://localhost:3001", {
-  auth: {
-    token: localStorage.getItem("token"),
-  },
-});
+import io, { Socket } from "socket.io-client";
 
 type Message = string;
 type UserId = string;
@@ -21,10 +15,11 @@ export default function Main() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState<string>("");
   const [activeUsers, setActiveUsers] = useState<UserId[]>([]);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   const router = useRouter();
 
-
+  // Verifică login-ul
   useEffect(() => {
     verifyLogin().then((valid) => {
       setIsLoggedIn(valid);
@@ -36,20 +31,27 @@ export default function Main() {
     });
   }, [router]);
 
+  // Conectează socket.io doar după autentificare
   useEffect(() => {
     if (!isLoggedIn) return;
 
+    const token = localStorage.getItem("token");
+    const socketIo = io("http://localhost:3001", {
+      auth: { token },
+    });
 
-    socket.on("message", (message: Message) => {
+    setSocket(socketIo);
+
+    socketIo.on("message", (message: Message) => {
       setMessages((prev) => [...prev, message]);
     });
 
-    socket.on("activeUsers", (users: UserId[]) => {
+    socketIo.on("activeUsers", (users: UserId[]) => {
       setActiveUsers(users);
     });
 
     return () => {
-      socket.disconnect();
+      socketIo.disconnect();
     };
   }, [isLoggedIn]);
 
@@ -59,7 +61,7 @@ export default function Main() {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (inputValue.trim()) {
+    if (inputValue.trim() && socket) {
       socket.emit("message", inputValue);
       setInputValue("");
     }
@@ -70,7 +72,7 @@ export default function Main() {
   }
 
   if (!isLoggedIn) {
-    return null; // or mesaj fallback, dar redirect se face deja
+    return null;
   }
 
   return (
