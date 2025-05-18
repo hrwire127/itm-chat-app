@@ -13,6 +13,8 @@ export default function FriendsPage() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [token, setToken] = useState<string | null>(null);
     const [hydrated, setHydrated] = useState(false); // pentru a preveni mismatch
+    const [friends, setFriends] = useState<any[]>([]);
+
 
     // Așteaptă montarea clientului
 
@@ -44,17 +46,32 @@ export default function FriendsPage() {
     useEffect(() => {
         if (!token) return;
 
+        fetchFriends();
         fetchRequests();
     }, [token]);
 
 
-    // async function fetchRequests() {
-    //     const res = await fetch(`/api/friends/requests?userId=${token}`);
-    //     const data = await res.json();
-    //     console.log(requests)
-    //     setRequests(data);
-    //     setLoading(false);
-    // }
+    async function fetchFriends() {
+        if (!token) return;
+        try {
+            const res = await fetch("http://localhost:3001/api/friends/list", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setFriends(data);
+            } else {
+                setFriends([]);
+            }
+        } catch (error) {
+            console.error("Error fetching friends:", error);
+        }
+    }
+
 
     // Nu randa nimic până nu știm că suntem pe client
     if (!hydrated) return null;
@@ -186,6 +203,22 @@ export default function FriendsPage() {
                     </ul>
                 )}
             </div>
+            {/* Friends List Section */}
+            <div className="bg-white dark:bg-zinc-900 p-4 rounded shadow">
+                <h2 className="text-lg font-semibold mb-4">Your Friends</h2>
+                {friends.length === 0 ? (
+                    <p className="text-gray-500">No friends yet.</p>
+                ) : (
+                    <ul className="space-y-2">
+                        {friends.map(friend => (
+                            <li key={friend._id} className="border-b pb-1">
+                                {friend.username}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
+
         </div>
     );
 }

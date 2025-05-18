@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const { Schema, model, models } = require("mongoose");
 
-
 const userSchema = new mongoose.Schema(
   {
     username: {
@@ -49,6 +48,19 @@ userSchema.pre("save", async function (next) {
 userSchema.methods.comparePassword = async function (password) {
   return bcrypt.compare(password, this.password);
 };
+
+userSchema.pre("save", function (next) {
+  // Asigură-te că toate listele sunt unice
+  this.friends = [...new Set(this.friends.map((id) => id.toString()))];
+  this.friendRequests = [
+    ...new Set(this.friendRequests.map((id) => id.toString())),
+  ];
+  this.sentRequests = [
+    ...new Set(this.sentRequests.map((id) => id.toString())),
+  ];
+
+  next();
+});
 
 const User = mongoose.model("User", userSchema);
 

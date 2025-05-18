@@ -9,6 +9,23 @@ router.post("/request", authenticate, async (req, res) => {
   const fromUser = await User.findOne({ username: fromUserName });
   const toUser = await User.findOne({ username: toUsername });
 
+  // Dacă sunt deja prieteni
+  if (fromUser.friends.includes(toUser._id)) {
+    return res.status(400).json({ msg: "Already friends" });
+  }
+
+  // Dacă există deja o cerere trimisă de la fromUser către toUser
+  if (toUser.friendRequests.includes(fromUser._id)) {
+    return res.status(400).json({ msg: "Friend request already sent" });
+  }
+
+  // Dacă există deja o cerere în sens invers (toUser i-a trimis deja lui fromUser)
+  if (fromUser.friendRequests.includes(toUser._id)) {
+    return res
+      .status(400)
+      .json({ msg: "You already have a request from this user" });
+  }
+
   //   console.log(fromUser);
   //   console.log(toUser);
 
@@ -76,6 +93,26 @@ router.get("/requests", authenticate, async (req, res) => {
     res.status(200).json(formattedRequests);
   } catch (err) {
     console.error("Error fetching friend requests:", err);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+
+router.get("/list", authenticate, async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    const user = await User.findById(userId).populate("friends", "username");
+
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    const formattedFriends = user.friends.map((friend) => ({
+      _id: friend._id,
+      username: friend.username,
+    }));
+
+    res.status(200).json(formattedFriends);
+  } catch (err) {
+    console.error("Error fetching friends:", err);
     res.status(500).json({ msg: "Server error" });
   }
 });
