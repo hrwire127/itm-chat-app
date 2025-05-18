@@ -1,43 +1,45 @@
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
 const User = require("../models/User");
+const jwt = require("jsonwebtoken");
 
-// Register a new user
-const register = async (req, res, next) => {
+const generateToken = (user) => {
+  return jwt.sign(
+    { id: user._id, email: user.email, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+};
+
+exports.registerRouter = async (req, res) => {
   const { username, email, password } = req.body;
 
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ username, email, password: hashedPassword });
-    await user.save();
-    res.json({ message: "Registration successful" });
-  } catch (error) {
-    next(error);
+    const existing = await User.findOne({ email });
+    if (existing)
+      return res.status(400).json({ message: "Email already used" });
+
+    const user = await User.create({ username, email, password });
+    const token = generateToken(user);
+    res.status(201).json({ token });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-// Login with an existing user
-const login = async (req, res, next) => {
-  const { username, password } = req.body;
+exports.loginRouter = async (req, res) => {
+  const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
-    const passwordMatch = await user.comparePassword(password);
-    if (!passwordMatch) {
-      return res.status(401).json({ message: "Incorrect password" });
-    }
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch)
+      return res.status(400).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
-      expiresIn: "1 hour",
-    });
+    const token = generateToken(user);
     res.json({ token });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
   }
 };
-
-module.exports = { register, login };

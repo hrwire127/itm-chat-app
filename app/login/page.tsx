@@ -2,33 +2,57 @@
 
 import { useState, ChangeEvent, FormEvent } from "react";
 import "./Login.css";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
-
-  // Form state
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const router = useRouter();
 
   const handleToggle = () => {
     setIsLogin(!isLogin);
-    // Clear inputs on toggle
     setEmail("");
+    setUsername("");
     setPassword("");
     setConfirmPassword("");
+    setError(null);
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!email || !password || (!isLogin && password !== confirmPassword)) {
-      alert("Please fill all fields correctly");
+    setError(null);
+
+    if (!email || !password || (!isLogin && (!username || password !== confirmPassword))) {
+      setError("Verifică câmpurile completate!");
       return;
     }
-    if (isLogin) {
-      alert(`Logging in with ${email}`);
-    } else {
-      alert(`Signing up with ${email}`);
+
+    const endpoint = isLogin ? "login" : "register";
+    const payload = isLogin
+      ? { email, password }
+      : { username, email, password };
+
+
+    try {
+      const res = await fetch(`http://localhost:3001/api/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || "Eroare la autentificare");
+
+      localStorage.setItem("token", data.token); // JWT simplu
+      router.push("/"); // Redirect către homepage
+    } catch (err: any) {
+      setError(err.message);
     }
   };
 
@@ -36,16 +60,29 @@ export default function LoginPage() {
     <div className="login-page">
       <div className="login-container">
         <h2>{isLogin ? "Login" : "Sign Up"}</h2>
+
+        {error && <p style={{ color: "red", marginBottom: "10px" }}>{error}</p>}
+
         <form onSubmit={handleSubmit} className="login-form">
+          {!isLogin && (
+            <>
+              <label htmlFor="username">Username</label>
+              <input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+            </>
+          )}
+
           <label htmlFor="email">Email</label>
           <input
             id="email"
             type="email"
-            placeholder="you@example.com"
             value={email}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setEmail(e.target.value)
-            }
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
 
@@ -53,25 +90,19 @@ export default function LoginPage() {
           <input
             id="password"
             type="password"
-            placeholder="••••••••"
             value={password}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setPassword(e.target.value)
-            }
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
 
           {!isLogin && (
             <>
-              <label htmlFor="confirmPassword">Confirm Password</label>
+              <label htmlFor="confirm">Confirm Password</label>
               <input
-                id="confirmPassword"
+                id="confirm"
                 type="password"
-                placeholder="••••••••"
                 value={confirmPassword}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  setConfirmPassword(e.target.value)
-                }
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
             </>
@@ -83,9 +114,9 @@ export default function LoginPage() {
         </form>
 
         <p className="toggle-text">
-          {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
-          <button onClick={handleToggle} className="toggle-btn" type="button">
-            {isLogin ? "Sign Up" : "Login"}
+          {isLogin ? "Nu ai cont?" : "Ai deja cont?"}{" "}
+          <button className="toggle-btn" onClick={handleToggle}>
+            {isLogin ? "Înregistrează-te" : "Autentifică-te"}
           </button>
         </p>
       </div>
