@@ -16,6 +16,7 @@ type ConversationType = {
     messages: MessageType[];
 };
 
+
 export default function ChatPage() {
     const router = useRouter();
     const { conversationId } = useParams();

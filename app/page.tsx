@@ -124,9 +124,11 @@ function NewConversation() {
         return;
       }
 
-      const conversation = await res.json();
+      const data = await res.json();
 
-      router.push(`/chat/${conversation._id}`);
+      // console.log(data)
+
+      window.location.href = `/chat/${data.conversation._id}`;
     } catch (err) {
       alert("Eroare la creare conversație");
       console.error(err);

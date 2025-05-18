@@ -4,7 +4,6 @@ const authenticate = require("../middleware/authentificate");
 const Conversation = require("../models/Conversation");
 const User = require("../models/User");
 
-// Creează / găsește conversația dintre 2 useri (dacă sunt prieteni)
 router.post("/conversation", authenticate, async (req, res) => {
   const userId = req.user.id;
   const { friendUsername } = req.body;
@@ -35,7 +34,8 @@ router.post("/conversation", authenticate, async (req, res) => {
         await conversation.save();
       }
 
-      console.log("YESS");
+      console.log(friend);
+      console.log(conversation);
 
       res.status(200).json({ conversation, friend });
 
