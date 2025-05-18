@@ -1,77 +1,23 @@
+// src/server.js
 require("dotenv").config();
-const express = require("express");
 const http = require("http");
-const mongoose = require("mongoose");
-const flash = require("express-flash");
-const session = require("express-session");
 const { Server } = require("socket.io");
-const cors = require("cors");
-
-const uri = process.env.URI;
-var sessionStore = new session.MemoryStore();
-
-const app = express();
-const server = http.createServer(app);
-
-const authRoutes = require("./routes/authRouter");
-const protectedRoutes = require("./routes/protectedRouter");
+const createApp = require("./app");
+const connectDB = require("./config/db");
+const socketHandler = require("./sockets");
 
 const PORT = process.env.PORT;
+const CLIENT_PORT = process.env.PORT_CLIENT;
 
+const app = createApp(CLIENT_PORT);
+connectDB(process.env.URI);
+
+const server = http.createServer(app);
 const io = new Server(server, {
-  cors: {
-    origin: `http://localhost:${process.env.PORT_CLIENT}`, // portul frontend-ului
-    methods: ["GET", "POST"],
-  },
+  cors: { origin: `http://localhost:${CLIENT_PORT}`, methods: ["GET", "POST"] },
 });
 
-app.use(
-  cors({
-    origin: `http://localhost:${process.env.PORT_CLIENT}`, // frontend-ul
-    credentials: true,
-  })
-);
-
-mongoose
-  .connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 5000, // scade timpul de așteptare
-  })
-  .then(() => console.log("✅ Conectat la MongoDB"))
-  .catch((err) => console.log("❌ Eroare la conectare:", err));
-
-activeUsers = {};
-
-io.on("connection", (socket) => {
-  activeUsers[socket.id] = {
-    username: socket.handshake.auth.username || "none",
-    token: socket.handshake.auth.token || "none",
-    role: socket.handshake.auth.role || "none",
-  };
-
-  console.log("User connected:", socket.handshake.auth.username);
-
-  // Trimite lista de useri la toți
-  io.emit("activeUsers", Object.values(activeUsers));
-
-  socket.on("message", (message) => {
-    io.emit("message", `${socket.id}: ${message}`);
-  });
-
-  socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
-    delete activeUsers[socket.id];
-    io.emit("activeUsers", Object.values(activeUsers)); // Trimite lista actualizată
-  });
-});
-
-app.use(express.json()); // important pentru body parsing
-// app.use('/api', authRoutes); // deci ai endpoint-ul POST /api/register
-
-app.use(express.json());
-app.use("/api", protectedRoutes);
-app.use("/api", authRoutes);
+socketHandler(io);
 
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
