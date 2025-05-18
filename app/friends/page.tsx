@@ -39,6 +39,7 @@ export default function FriendsPage() {
     useEffect(() => {
         setHydrated(true);
 
+        fetchFriends();
         fetchRequests();
     }, []);
 
@@ -50,6 +51,17 @@ export default function FriendsPage() {
         fetchRequests();
     }, [token]);
 
+    useEffect(() => {
+        if (!token) return;
+
+        fetchFriends();
+    }, [friends]);
+
+    // useEffect(() => {
+    //     if (!token) return;
+
+    //     fetchRequests();
+    // }, [requests]);
 
     async function fetchFriends() {
         if (!token) return;
@@ -141,6 +153,31 @@ export default function FriendsPage() {
         setRequests((prev) => prev.filter((req) => req._id !== fromUserId));
     }
 
+    async function removeFriend(friendUsername: string) {
+        if (!token) return;
+
+        try {
+            const res = await fetch("http://localhost:3001/api/friends/remove", {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
+                body: JSON.stringify({ friendUsername }),
+            });
+
+            if (res.ok) {
+                // După ștergere, refetch friends pentru UI actualizat
+                fetchFriends();
+            } else {
+                const error = await res.json();
+                alert(error.msg || "Failed to remove friend");
+            }
+        } catch (error) {
+            console.error("Remove friend error:", error);
+        }
+    }
+
 
     // if (loading) return <Loader />;
     if (!isLoggedIn) return null;
@@ -187,13 +224,13 @@ export default function FriendsPage() {
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => respondToRequest(req._id, true)}
-                                        className="bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700"
+                                        className="cursor-pointer bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700"
                                     >
                                         Accept
                                     </button>
                                     <button
                                         onClick={() => respondToRequest(req._id, false)}
-                                        className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700"
+                                        className="cursor-pointer bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700"
                                     >
                                         Reject
                                     </button>
@@ -204,20 +241,20 @@ export default function FriendsPage() {
                 )}
             </div>
             {/* Friends List Section */}
-            <div className="bg-white dark:bg-zinc-900 p-4 rounded shadow">
-                <h2 className="text-lg font-semibold mb-4">Your Friends</h2>
-                {friends.length === 0 ? (
-                    <p className="text-gray-500">No friends yet.</p>
-                ) : (
-                    <ul className="space-y-2">
-                        {friends.map(friend => (
-                            <li key={friend._id} className="border-b pb-1">
-                                {friend.username}
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </div>
+            <ul className="space-y-2">
+                {friends.map(friend => (
+                    <li key={friend._id} className="border-b pb-1 flex justify-between items-center">
+                        <span>{friend.username}</span>
+                        <button
+                            onClick={() => removeFriend(friend.username)}
+                            className="cursor-pointer bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700"
+                        >
+                            Remove
+                        </button>
+                    </li>
+                ))}
+            </ul>
+
 
         </div>
     );

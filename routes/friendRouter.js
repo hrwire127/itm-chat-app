@@ -117,4 +117,36 @@ router.get("/list", authenticate, async (req, res) => {
   }
 });
 
+router.delete("/remove", authenticate, async (req, res) => {
+  const userId = req.user.id;
+  const { friendUsername } = req.body;
+
+  if (!friendUsername) {
+    return res.status(400).json({ msg: "Missing friendUsername" });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    const friend = await User.findOne({ username: friendUsername });
+
+    if (!user || !friend) {
+      return res.status(404).json({ msg: "User or friend not found" });
+    }
+
+    // Elimină friend din lista userului
+    user.friends = user.friends.filter((id) => !id.equals(friend._id));
+
+    // Elimină user din lista prietenilor friendului
+    friend.friends = friend.friends.filter((id) => !id.equals(user._id));
+
+    await user.save();
+    await friend.save();
+
+    res.status(200).json({ msg: "Friend removed" });
+  } catch (error) {
+    console.error("Error removing friend:", error);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+
 module.exports = router;
