@@ -7,7 +7,6 @@ import ConversationList from "./components/ConversationList";
 import io, { Socket } from "socket.io-client";
 import Loader from "./components/Loader";
 
-
 type Conversation = {
   id: string;
   title: string;
@@ -23,11 +22,9 @@ const mockConversations: Conversation[] = [
 export default function Home() {
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [username, setUsername] = useState<string | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>(mockConversations);
   const [searchTerm, setSearchTerm] = useState("");
-
 
   const router = useRouter();
 
@@ -45,6 +42,8 @@ export default function Home() {
     });
   }, [router]);
 
+
+
   const filteredConversations = conversations.filter((conv) =>
     conv.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -52,7 +51,6 @@ export default function Home() {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
-
 
   if (loading) return <Loader />;
   if (!isLoggedIn) return null;
@@ -62,10 +60,11 @@ export default function Home() {
       <h1 className="text-3xl font-bold mb-6">Conversații</h1>
 
       <SearchBar value={searchTerm} onChange={handleSearchChange} />
+
       <div className="flex flex-wrap gap-4 mt-6">
         <NewConversation />
         <CreateGroup />
-        <AddFriend />
+        <AddFriendButton onClick={() => router.push("/friends")} />
       </div>
 
       <ConversationList conversations={filteredConversations} />
@@ -74,14 +73,22 @@ export default function Home() {
   );
 }
 
-function SearchBar({ value, onChange }: { value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
+// ---------- Subcomponente ----------
+
+function SearchBar({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
   return (
     <input
       type="text"
       placeholder="Caută conversații..."
       value={value}
       onChange={onChange}
-      className="w-full p-2 border border-gray-300 rounded m-0"
+      className="w-full p-2 border border-gray-300 rounded"
     />
   );
 }
@@ -113,17 +120,14 @@ function CreateGroup() {
     </button>
   );
 }
-
-function AddFriend() {
-  const handleClick = () => {
-    alert("Funcționalitate adăugare prieten");
-  };
+function AddFriendButton({ onClick }: { onClick: () => void }) {
   return (
     <button
-      onClick={handleClick}
+      onClick={onClick}
       className="cursor-pointer px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
     >
       + Adaugă prieten
     </button>
   );
 }
+

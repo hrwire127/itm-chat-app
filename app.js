@@ -22,6 +22,7 @@ module.exports = (clientPort) => {
   app.use(flash());
 
   // mount routes
+  app.use("/api/friends", require("./routes/friendRouter"));
   app.use("/api", require("./routes/protectedRouter"));
   app.use("/api", require("./routes/authRouter"));
 
