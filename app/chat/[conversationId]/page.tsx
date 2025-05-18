@@ -27,8 +27,6 @@ export default function Main() {
 
     const router = useRouter();
 
-    console.log(messages)
-
     useEffect(() => {
         // Verifică dacă utilizatorul este logat
         const token = localStorage.getItem("token");
@@ -57,7 +55,6 @@ export default function Main() {
 
         // Primește mesaje noi de la server
         socketIo.on("message", (message: Message) => {
-            console.log(message)
             setMessages((prev) => [...prev, message]);
         });
 
@@ -75,15 +72,16 @@ export default function Main() {
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         setInputValue(e.target.value);
     };
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        if (inputValue.trim() && socket && username) {
-            const newMessage = { sender: username, text: inputValue };
-            socket.emit("message", newMessage);
-            setMessages((prev) => [...prev, newMessage]); // adaugă local
-            setInputValue("");
-        }
-    };
+
+   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (inputValue.trim() && socket && username) {
+        const newMessage = { sender: username, text: inputValue };
+        socket.emit("message", newMessage);
+        setMessages((prev) => [...prev, newMessage]); // adaugă local
+        setInputValue("");
+    }
+};
 
 
     if (loading) return <Loader />;
@@ -117,8 +115,8 @@ export default function Main() {
                     >
                         <span
                             className={`inline-block px-3 py-1 rounded ${msg.sender === username
-                                ? "bg-blue-500 text-white"
-                                : "bg-gray-300"
+                                    ? "bg-blue-500 text-white"
+                                    : "bg-gray-300"
                                 }`}
                         >
                             <b>{msg.sender}:</b> {msg.text}

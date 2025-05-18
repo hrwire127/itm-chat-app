@@ -14,7 +14,7 @@ type Conversation = {
 };
 
 const mockConversations: Conversation[] = [
-  { id: "1", title: "Chat cu Ana", lastMessage: "Ne vedem mâine!" },
+  { id: "1", title: "Chat cu Andrei", lastMessage: "Hai la lucru champ)!" },
   { id: "2", title: "Grupul de muncă", lastMessage: "Ședința începe la 10" },
   { id: "3", title: "Prietenii", lastMessage: "Hai la film?" },
 ];
