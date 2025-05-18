@@ -112,10 +112,14 @@ export default function FriendsPage() {
             method: "POST",
             body: JSON.stringify({
                 token,
-                fromUserId,
+                id: fromUserId,
+                username: username,
                 action: accept ? "accept" : "reject",
             }),
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
         });
         setRequests((prev) => prev.filter((req) => req._id !== fromUserId));
     }

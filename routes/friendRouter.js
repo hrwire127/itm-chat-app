@@ -29,24 +29,28 @@ router.post("/request", authenticate, async (req, res) => {
 
 // POST /api/friends/respond
 router.post("/respond", authenticate, async (req, res) => {
-  const { userId, fromUserId, action } = req.body; // action: "accept" | "reject"
+  const { id, token, username, action } = req.body; // action: "accept" | "reject"
 
-  const user = await User.findById(userId);
-  const fromUser = await User.findById(fromUserId);
+  //   console.log(req.body);
+  const user = await User.findById(id);
+  const fromUser = await User.findOne({ username });
+
+  // console.log(user); artiom
+  // console.log(fromUser); mihai
 
   if (!user || !fromUser)
     return res.status(404).json({ msg: "User not found" });
 
-  user.friendRequests = user.friendRequests.filter(
-    (id) => !id.equals(fromUserId)
+  user.sentRequests = user.sentRequests.filter(
+    (id) => !id.equals(fromUser._id)
   );
-  fromUser.sentRequests = fromUser.sentRequests.filter(
-    (id) => !id.equals(userId)
+  fromUser.friendRequests = fromUser.friendRequests.filter(
+    (id) => !id.equals(user._id)
   );
 
   if (action === "accept") {
-    user.friends.push(fromUserId);
-    fromUser.friends.push(userId);
+    user.friends.push(fromUser);
+    fromUser.friends.push(user);
   }
 
   await user.save();
@@ -58,12 +62,9 @@ router.post("/respond", authenticate, async (req, res) => {
 router.get("/requests", authenticate, async (req, res) => {
   const id = req.user.id; // ← îl iei din token
 
-//   console.log(req.user)
+  //   console.log(req.user)
   try {
-    const user = await User.findById(id).populate(
-      "friendRequests",
-      "username"
-    );
+    const user = await User.findById(id).populate("friendRequests", "username");
 
     if (!user) return res.status(404).json({ msg: "User not found" });
 
